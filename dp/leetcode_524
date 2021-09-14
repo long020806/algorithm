@@ -1,0 +1,230 @@
+/**
+*	leetcode 524
+*	通过删除字母匹配到字典里最长单词
+*/
+题目：
+给你一个字符串 s 和一个字符串数组 dictionary 作为字典，找出并返回字典中最长的字符串，该字符串可以通过删除 s 中的某些字符得到。
+
+如果答案不止一个，返回长度最长且字典序最小的字符串。如果答案不存在，则返回空字符串。
+
+示例 1：
+	输入：s = "abpcplea", dictionary = ["ale","apple","monkey","plea"]
+	输出："apple"
+示例 2：
+	输入：s = "abpcplea", dictionary = ["a","b","c"]
+	输出："a
+
+
+链接：https://leetcode-cn.com/problems/longest-word-in-dictionary-through-deleting
+/* 	------------------------------------	*/
+abpcplea->apple
+1.delete b
+2.delete c
+3.delete p
+4.delete a
+分析:
+2分check 
+bool is_substr(str1,s){
+	//双指针
+	cur1=0,cur2=0;
+	while(cur1<str1.length&&s.length){
+		while(str1[cur1]!=s[cur2]){
+			cur2++;
+		}
+		cur1++;	
+	}
+	return cur1==str1.length;
+}
+bool check(str){
+	if(is_substr()){
+		if(str.length>=answer.length){
+			if(str.length==answer.length){
+				//比较字典序；
+				answer =  ...;
+			}
+		}
+	}
+}
+//////////////// 爆栈
+#include<bits/stdc++.h>
+using namespace std;
+class Solution {
+public:
+    bool is_substr(string s,string s1){
+        int n=s.length(),n1=s1.length();
+        int cur1=0,cur2=0;
+        while(cur1<n&&cur2<n1){
+            if(s[cur1]==s1[cur2]){
+                cur2++;
+            }
+            cur1++;
+        }
+        return cur2==n1;
+    }
+    string check(string s,string s1,string s2){
+        int n1=s1.length(),n2=s2.length();
+        bool is_s1 = is_substr(s,s1),is_s2 = is_substr(s,s2);
+        if(is_s1&&is_s2){
+            if(n1==n2){
+                return s1.compare(s2)==-1?s1:s2;
+            }
+            return n1>n2?s1:s2;
+        }
+        return is_s1?s1:s2;
+    }
+    string binearySearch(vector<string>&dictionary,string s,int start,int end){
+        if(start>end) return "";
+        if(start==end) return dictionary[start];
+        int mid = (start+end)/2;
+        string s1 = binearySearch(dictionary,s,start,mid);
+        string s2 = binearySearch(dictionary,s,mid+1,end);
+        return check(s,s1,s2);
+    }
+public:
+    string findLongestWord(string s, vector<string>& dictionary) {
+        int n = dictionary.size();
+        string answer = binearySearch(dictionary,s,0,n-1);
+        if(is_substr(s,answer)) return answer;
+        return "";
+    }
+};
+
+int main(){
+	int n = 3;
+	string s = "abpcplea";
+	string strs[n] = {"a","b","c"};
+	vector<string> dictionary(strs,strs+n);
+	Solution solution;
+	cout << solution.findLongestWord(s,dictionary) << endl;
+	string s1 = "a",s2="b";
+	cout << s1.compare(s2);
+	
+	return 0;
+}
+
+题解：
+class Solution {
+private:
+    bool is_substr(string s,string s1){
+        int n=s.length(),n1=s1.length();
+        if(n1==0) return false;
+        int cur1=0,cur2=0;
+        while(cur1<n&&cur2<n1){
+            if(s[cur1]==s1[cur2]){
+                cur2++;
+            }
+            cur1++;
+        }
+        return cur2==n1;
+    }
+
+public:
+    string findLongestWord(string s, vector<string>& dictionary) {
+        int n = dictionary.size();
+        sort(dictionary.rbegin(), dictionary.rend(), [](auto&& a, auto&& b){return a.size() < b.size() || a.size() == b.size() && a > b;});
+        string answer = "";
+        for(int i=0;i<n;i++){
+        	if(is_substr(s,dictionary[i])){
+        	    answer = dictionary[i];
+			    break;	
+			} 
+		}
+		return answer;
+    }
+};
+总结：思想 1.双指针确定是否为子串 然后通过 排序数组找到符合子串的长度最长字典序最短的子串
+			2.dp
+
+			方法三：动态规划
+思路和算法
+
+在方法一的基础上，我们考虑通过对字符串 ss 的预处理，来优化第 11 个问题的处理。
+
+考虑前面的双指针的做法，我们注意到我们有大量的时间用于在 ss 中找到下一个匹配字符。
+
+这样我们通过预处理，得到：对于 ss 的每一个位置，从该位置开始往后每一个字符第一次出现的位置。
+
+我们可以使用动态规划的方法实现预处理，令 f[i][j]f[i][j] 表示字符串 ss 中从位置 ii 开始往后字符 jj 第一次出现的位置。在进行状态转移时，如果 ss 中位置 ii 的字符就是 jj，那么 f[i][j]=if[i][j]=i，否则 jj 出现在位置 i+1i+1 开始往后，即 f[i][j]=f[i+1][j]f[i][j]=f[i+1][j]；因此我们要倒过来进行动态规划，从后往前枚举 ii。
+
+这样我们可以写出状态转移方程：
+f[i][j] = s[i]==j&&i || s[i]!=j&&f[i+1][j];
+
+	
+假定下标从 00 开始，那么 f[i][j]f[i][j] 中有 0 <= i <=m-1 ，对于边界状态 f[m-1][..]f[m−1][..]，我们置 f[m][..]f[m][..] 为 mm，让 f[m-1][..]f[m−1][..] 正常进行转移。这样如果 f[i][j]=mf[i][j]=m，则表示从位置 ii 开始往后不存在字符 jj。
+
+这样，我们可以利用 ff 数组，每次 O(1)O(1) 地跳转到下一个位置，直到位置变为 mm 或 tt 中的每一个字符都匹配成功。
+js code
+var findLongestWord = function(s, dictionary) {
+    const m = s.length;
+    const f = new Array(m + 1).fill(0).map(() => new Array(26).fill(m));
+
+    for (let i = m - 1; i >= 0; --i) {
+        for (let j = 0; j < 26; ++j) {
+            if (s[i] === String.fromCharCode('a'.charCodeAt() + j)) {
+                f[i][j] = i;
+            } else {
+                f[i][j] = f[i + 1][j];
+            }
+        }
+    }
+    let res = "";
+    for (const t of dictionary) {
+        let match = true;
+        let j = 0;
+        for (let i = 0; i < t.length; ++i) {
+            if (f[j][t[i].charCodeAt() - 'a'.charCodeAt()] === m) {
+                match = false;
+                break;
+            }
+            j = f[j][t[i].charCodeAt() - 'a'.charCodeAt()] + 1;
+        }
+        if (match) {
+            if (t.length > res.length ||  (t.length === res.length && t.localeCompare(res) < 0)) {
+                res = t;
+            }
+        }
+    }
+    return res;
+};
+
+链接：https://leetcode-cn.com/problems/longest-word-in-dictionary-through-deleting/solution/tong-guo-shan-chu-zi-mu-pi-pei-dao-zi-di-at66/
+
+01234567
+abpcplea  len = 8;
+dp[len][26] = len;
+for i : n-1..0:
+    for j : 0..26:
+        if s[i]==j+'a':
+            dp[i][j] = i
+        else:
+            dp[i][j] = dp[i+1][j]
+
+    a b c d e f g h i j k l m n o p q r s t u v w x y z
+0   0 1 3 8 6 8 8 8 8 8 8 5 8 8 8 2 8 8 8 8 8 8 8 8 8 8
+1   7 1 3 8 6 8 8 8 8 8 8 5 8 8 8 2 8 8 8 8 8 8 8 8 8 8
+2   7 8 3 8 6 8 8 8 8 8 8 5 8 8 8 4 8 8 8 8 8 8 8 8 8 8
+3   7 8 3 8 6 8 8 8 8 8 8 5 8 8 8 4 8 8 8 8 8 8 8 8 8 8
+4   7 8 8 8 6 8 8 8 8 8 8 5 8 8 8 4 8 8 8 8 8 8 8 8 8 8
+5   7 8 8 8 6 8 8 8 8 8 8 5 8 8 8 8 8 8 8 8 8 8 8 8 8 8
+6   7 8 8 8 6 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8
+7   7 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8     dp[7][0] = s[7]==0+'a'?7:dp[8][0]
+8   8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8 8
+x=applc abpcplea
+{
+    l=0 r=0 m=5 //"applc".length()
+    while(r<m) {
+        l = dp[i][x[r]];
+        r++;
+        if(l>=len) false;
+    }
+}
+return true
+dp[l][x[r]]!=8 l++ r++ 
+dp[0]['a'] = 0 l=1 r=1 
+dp[1]['p'] = 2 l=3 r=2
+dp[3]['p'] = 4 l=5 r=3
+dp[5]['l'] = 5 l=6 r=4
+dp[7]['c'] = 8 l=9 r=5 l=9 return false;
+dp[7]['a'] = 7 l=8 r=5 r>=m return ture; 
+
+  

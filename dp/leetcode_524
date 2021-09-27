@@ -191,6 +191,7 @@ var findLongestWord = function(s, dictionary) {
 
 01234567
 abpcplea  len = 8;
+dp[i][j] 第i个字符到 下一个字符j 的位置 
 dp[len][26] = len;
 for i : n-1..0:
     for j : 0..26:

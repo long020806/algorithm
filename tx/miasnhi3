@@ -1,0 +1,62 @@
+/**
+*	输入组数T 下面T行每行有三个输入n,x,y代表 leetcode 4 寻找有序数组的中位数
+	x,y的整数序列的第n小的数
+	1 
+	1 2 3 	{2,3,4,6,8} 
+	4 2 3   {2,3,4,6,8}
+*/
+gcd(m,n)
+	return n==0?m:gcd(n,m%n);
+2 4 6 8 10 12
+3 6 9 12
+
+2 2 3
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int gcd(int m,int n){
+	return n==0?m:gcd(n,m%n);
+}
+int calc(int n,int multi){
+	int k=n/multi;
+	int temp = n;
+	while(k){
+		n+=k;
+		k = k/multi;
+	}
+	return n;
+}
+int getKthElement(int x,int y,int k){
+	int index1=1;
+	int index2=1;//初始化为 1*x和1*y
+	while(true){
+		cout << k <<endl;
+		if(k==1) return min(x*index1,y*index2);//求第一小的数从两个数中找到最小的那个
+		int newIndex1 = index1+k/2-1;//k/2-1为二分k，加上偏移量
+		int newIndex2 = index2+k/2-1;
+		if(newIndex1*x<=newIndex2*y){
+			k-=newIndex1 - index1+1;//k=k-k/2;
+			index1 = newIndex1+1; //newIndex之前的已被包含所以移动index1到其后一位
+		}else{
+			k-=newIndex2 - index2+1;
+			index2 = newIndex2; 
+		}
+	}
+}
+int main(){
+	int T;
+	cin >> T;
+	while(T--){
+		int n,x,y;
+		cin >>n>>x>>y;
+		int multi = x*y/gcd(max(x,y),min(x,y));
+		n = calc(n,multi/x+multi/y);//计算真正的n，本来排除了相同元素
+		if(n==1){
+			cout << x <<endl;
+			continue;	
+		} 
+		cout << getKthElement(x,y,n) <<endl;		
+	}
+	return 0;
+} 

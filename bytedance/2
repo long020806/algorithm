@@ -1,0 +1,90 @@
+1.blink组件
+<blink :interbal="2000">
+	<img/>
+</blink>
+思路:
+使用插槽 给予v-show属性然后在挂载时启动定时器然后结束时清楚定时器
+2.promise.last
+Promise.last = (promiseArr)=>{
+    let resolve,reject;
+    let promise = new Promise((r,s)=>{
+        resolve = r;
+        reject=  s;
+    })
+    let ret = [];
+    const arrLen = promiseArr.length;
+    for(let p of promiseArr){
+        Promise.resolve(p).then(data=>{
+            ret = [...ret,data];
+            let len = ret.length;
+            // console.log(len,arrLen)
+            if(len>=arrLen) resolve(ret[arrLen-1]);
+        }).catch(err=>{
+            return reject(new Error(err));
+        })
+    }
+    return promise;//必须返回包裹的promise否则之前为异步没有返回值
+}
+let promiseResult = Promise.last([
+    new Promise((resolve)=>{
+        setTimeout(()=>{
+            resolve(1)
+            console.log(1)
+        },1000)
+    }),new Promise((resolve)=>{
+        setTimeout(()=>{
+            resolve(2)
+            console.log(2)
+        },2000)
+    }),new Promise((resolve)=>{
+        setTimeout(()=>{
+            resolve(3)
+            console.log(3)
+        },1000)
+    }),
+])
+console.log(promiseResult)
+promiseResult.then(res=>console.log(res))
+3.数组转换成树结构
+/**
+ * arr = [{pid:0,id:1},{pid:1,id:2},{pid:1,id:3}]
+ *  
+ */
+//递归算法     
+function convertToTree(arr,root){
+    let chilren = arr.filter(item=>item.pid === root.id);
+ 
+    let resarr = chilren.map(item=>{
+        return convertToTree(arr,item);
+    })
+    if(resarr.length===0) resarr=null;
+    return {id:root.id,chilren:resarr}
+}
+
+const arr  = [{pid:0,id:1},{pid:1,id:2},{pid:1,id:3},{pid:2,id:4}];
+let root = arr.find(item=>item.pid===0);
+let tree = convertToTree(arr,root);
+console.log(tree);
+console.log(tree.chilren[0].chilren)
+/*
+* O(n)算法
+*/
+const arr  = [{pid:0,id:1},{pid:1,id:2},{pid:1,id:3},{pid:2,id:4}];
+function ToTree(data){
+    let result = [];
+    const map = {}
+    for(let node of arr){
+        map[node.id] = node;
+    }
+    for(let node of arr){
+        let parent = map[node.pid];
+        if(parent){
+            (parent.children||(parent.children = [])).push(node)
+        }else{
+            result = [...result,parent]
+        }
+    }
+    return result;
+}
+let re = ToTree(arr);
+console.log(JSON.stringify(arr,null,2))

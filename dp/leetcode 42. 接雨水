@@ -1,0 +1,144 @@
+leetcode 42. 接雨水
+height = [0,1,0,2,1,0,1,3,2,1,2,1]
+6
+dp[i] = dp[i-1] + count;
+water 
+  0 //初始化
+0 	  count = 0 	
+1  	  count = 0
+1 0
+1 0 2 count = 1
+2
+2 1
+2 1 0
+2 1 0 3 count =4 
+3
+3 2
+3 2 1
+3 2 1 2
+3 2 1 2 1
+3 2 1 2 1 count =1
+
+
+10 0 0 1 3 4 9
+
+//正向dp加反向dp
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        int n = height.size();
+        if(n<3) return 0;
+        vector<int>dp(n+1,0);
+        // 假设到达每一个柱子时他最高，得到可能存储的雨水如果比之前小则继续计算存储，如果大则dp[i]=dp[i-1]+water[i];       
+        // water[i]使用单调栈计算？
+        //寻找存储区间最大和第二大的比较？？
+        int front = 0;//记录首个元素和尾元素比较 除末尾最大 
+        for(int i=2;i<=n;i++){
+            int count =0;
+            if(height[i-1]>=height[front]){
+                int minV = min(height[front],height[i-1]);
+                int j = i-2;
+                while(j>front){
+                    int topV =  height[j];
+                    if(minV - topV>0)
+                        count+=minV-topV;
+                    j--;
+                }
+                front = i-1;
+            }
+            dp[i]=dp[i-1]+count;
+
+        }
+        if(front!=n-1){
+            vector<int> tmp;
+            for(int i=n-1;i>=front;i--){
+                tmp.push_back(height[i]);
+            }
+            int finalCount = trap(tmp);
+            dp[n]= dp[n-1] +finalCount;
+        }
+        
+        return dp[n];
+
+    }
+};
+题解：
+1.正向dp加反向dp 两侧较小值计算
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        int n = height.size();
+        if (n == 0) {
+            return 0;
+        }
+        vector<int> leftMax(n);
+        leftMax[0] = height[0];
+        for (int i = 1; i < n; ++i) {
+            leftMax[i] = max(leftMax[i - 1], height[i]);
+        }
+
+        vector<int> rightMax(n);
+        rightMax[n - 1] = height[n - 1];
+        for (int i = n - 2; i >= 0; --i) {
+            rightMax[i] = max(rightMax[i + 1], height[i]);
+        }
+
+        int ans = 0;
+        for (int i = 0; i < n; ++i) {
+            ans += min(leftMax[i], rightMax[i]) - height[i];
+        }
+        return ans;
+    }
+};
+2.单调栈
+当碰到的高度大于栈顶元素即出栈后 再入栈
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        int ans = 0;
+        stack<int> stk;
+        int n = height.size();
+        for (int i = 0; i < n; ++i) {
+            while (!stk.empty() && height[i] > height[stk.top()]) {
+                int top = stk.top();
+                stk.pop();
+                if (stk.empty()) {
+                    break;
+                }
+                int left = stk.top();
+                int currWidth = i - left - 1;
+                int currHeight = min(height[left], height[i]) - height[top];
+                ans += currWidth * currHeight;
+            }
+            stk.push(i);
+        }
+        return ans;
+    }
+};
+3.dp优化双指针
+
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        int ans = 0;
+        int left = 0, right = height.size() - 1;
+        int leftMax = 0, rightMax = 0;
+        while (left < right) {
+            leftMax = max(leftMax, height[left]);
+            rightMax = max(rightMax, height[right]);
+            if (height[left] < height[right]) {
+                ans += leftMax - height[left];
+                ++left;
+            } else {
+                ans += rightMax - height[right];
+                --right;
+            }
+        }
+        return ans;
+    }
+};
+
+
+
+
+
